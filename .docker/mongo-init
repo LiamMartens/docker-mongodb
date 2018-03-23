@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# check MONGODB_PORT
+if [ -z "$MONGODB_PORT" ]; then
+    export MONGODB_PORT=27017
+fi
+
+# admin user checks
+if [ -z "$MONGODB_ADMIN_USER" ]; then
+    export MONGODB_ADMIN_USER=admin
+fi
+
+if [ -z "$MONGODB_ADMIN_PASS" ]; then
+    export MONGODB_ADMIN_GEN=1
+    export MONGODB_ADMIN_PASS=$(pwgen -1 32)
+fi
+
+# replace mongod.conf port
+perl -p -i.bak -e "s/port\s*:\s*(.+)/port: $MONGODB_PORT/gi" /etc/mongod/mongod.conf
+if [[ $(cat /etc/mongod/mongod.conf) =~ "^\s*$" ]]; then
+    mv /etc/mongod/mongod.conf.bak /etc/mongod/mongod.conf
+else
+    rm /etc/mongod/mongod.conf.bak
+fi
+
+# check data dir
+if [ -d /data/db ]; then
+    return
+fi
+
+# create db dir
+mkdir /data/db
+
+# start mongo database
+mongod --fork --syslog --port $MONGODB_PORT
+
+# create  admin usermongo
+mongo --port $MONGODB_PORT admin <<EOF
+db.createUser(
+    {
+        user: '$MONGODB_ADMIN_USER',
+        pwd: '$MONGODB_ADMIN_PASS',
+        roles: [{
+            role: 'userAdminAnyDatabase',
+            db: 'admin'
+        }]
+    }
+);
+EOF
+
+# create other user if db name defined
+if [ ! -z "$MONGODB_NAME" ]; then
+    if [ -z "$MONGODB_USER" ]; then
+        export MONGODB_USER="$MONGODB_NAME"
+    fi
+
+    if [ -z "$MONGODB_PASS" ]; then
+        export MONGODB_PASS_GEN=1
+        export MONGODB_PASS=$(pwgen -1 32)
+    fi
+
+    mongo --port $MONGODB_PORT $MONGODB_DB <<EOF
+db.createUser(
+    {
+        user: '$MONGODB_USER',
+        pwd: '$MONGODB_PASS',
+        roles: [{
+            role: 'readWrite',
+            db: '$MONGODB_NAME'
+        }]
+    }
+);
+EOF
+
+    if [ $MONGODB_PASS_GEN -eq 1 ]; then
+        echo "Generated user password: $MONGODB_PASS"
+    fi
+fi
+
+if [ $MONGODB_ADMIN_GEN -eq 1 ]; then
+    echo "Generated admin password: $MONGODB_ADMIN_PASS"
+fi
+
+mongod --port $MONGODB_PORT --shutdown
