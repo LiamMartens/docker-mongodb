@@ -72,12 +72,12 @@ db.createUser(
 );
 EOF
 
-    if [ $MONGODB_PASS_GEN -eq 1 ]; then
+    if [ ! -z "$MONGODB_PASS_GEN" ]; then
         echo "Generated user password: $MONGODB_PASS"
     fi
 fi
 
-if [ $MONGODB_ADMIN_GEN -eq 1 ]; then
+if [ ! -z "$MONGODB_ADMIN_GEN" ]; then
     echo "Generated admin password: $MONGODB_ADMIN_PASS"
 fi
 
