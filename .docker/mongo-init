@@ -1,5 +1,12 @@
 #!/bin/bash
 
+source $DOCKER_DIR/.file-env MONGODB_PORT
+source $DOCKER_DIR/.file-env MONGODB_ADMIN_USER
+source $DOCKER_DIR/.file-env MONGODB_ADMIN_PASS
+source $DOCKER_DIR/.file-env MONGODB_NAME
+source $DOCKER_DIR/.file-env MONGODB_USER
+source $DOCKER_DIR/.file-env MONGODB_PASS
+
 # check MONGODB_PORT
 if [ -z "$MONGODB_PORT" ]; then
     export MONGODB_PORT=27017
