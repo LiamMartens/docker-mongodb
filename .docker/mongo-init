@@ -45,8 +45,8 @@ mongod --fork --syslog --port $MONGODB_PORT
 mongo --port $MONGODB_PORT admin <<EOF
 db.createUser(
     {
-        user: ${MONGODB_ADMIN_USER@Q},
-        pwd: ${MONGODB_ADMIN_PASS@Q},
+        user: '$($DOCKER_DIR/.escape $MONGODB_ADMIN_USER)',
+        pwd: '$($DOCKER_DIR/.escape $MONGODB_ADMIN_PASS)',
         roles: [{
             role: 'userAdminAnyDatabase',
             db: 'admin'
@@ -66,14 +66,27 @@ if [ ! -z "$MONGODB_NAME" ]; then
         export MONGODB_PASS=$(pwgen -1 32)
     fi
 
+    cat <<EOF
+db.createUser(
+    {
+        user: '$($DOCKER_DIR/.escape $MONGODB_USER)',
+        pwd: '$($DOCKER_DIR/.escape $MONGODB_PASS)',
+        roles: [{
+            role: 'readWrite',
+            db: '$($DOCKER_DIR/.escape $MONGODB_NAME)'
+        }]
+    }
+);
+EOF
+
     mongo --port $MONGODB_PORT $MONGODB_NAME <<EOF
 db.createUser(
     {
-        user: ${MONGODB_USER@Q},
-        pwd: ${MONGODB_PASS@Q},
+        user: '$($DOCKER_DIR/.escape $MONGODB_USER)',
+        pwd: '$($DOCKER_DIR/.escape $MONGODB_PASS)',
         roles: [{
             role: 'readWrite',
-            db: ${MONGODB_NAME@Q}
+            db: '$($DOCKER_DIR/.escape $MONGODB_NAME)'
         }]
     }
 );
