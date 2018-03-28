@@ -45,8 +45,8 @@ mongod --fork --syslog --port $MONGODB_PORT
 mongo --port $MONGODB_PORT admin <<EOF
 db.createUser(
     {
-        user: '${MONGODB_ADMIN_USER@Q}',
-        pwd: '${MONGODB_ADMIN_PASS@Q}',
+        user: ${MONGODB_ADMIN_USER@Q},
+        pwd: ${MONGODB_ADMIN_PASS@Q},
         roles: [{
             role: 'userAdminAnyDatabase',
             db: 'admin'
@@ -69,11 +69,11 @@ if [ ! -z "$MONGODB_NAME" ]; then
     mongo --port $MONGODB_PORT $MONGODB_NAME <<EOF
 db.createUser(
     {
-        user: '${MONGODB_USER@Q}',
-        pwd: '${MONGODB_PASS@Q}',
+        user: ${MONGODB_USER@Q},
+        pwd: ${MONGODB_PASS@Q},
         roles: [{
             role: 'readWrite',
-            db: '${MONGODB_NAME@Q}'
+            db: ${MONGODB_NAME@Q}
         }]
     }
 );
